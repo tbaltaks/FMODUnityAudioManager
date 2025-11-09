@@ -76,5 +76,12 @@ public static class EditorScriptAutoGenerator
         }
         return null;
     }
+
+
+    [MenuItem("Tools/Generate FMOD Management Scripts")]
+    private static void GenerateScriptsManually()
+    {
+        TryGenerateScripts();
+    }
 }
 #endif
