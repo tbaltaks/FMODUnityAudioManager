@@ -37,7 +37,8 @@ namespace TBaltaks.FMODManagement
 
         private void CleanUp(bool doesCleanUpAllowFadeOut = true)
         {
-            foreach (int key in eventInstances.Keys)
+            var keys = new List<int>(eventInstances.Keys);
+            foreach (int key in keys)
             {
                 EventInstance eventInstance = eventInstances[key];
                 FMOD.Studio.STOP_MODE stopMode = doesCleanUpAllowFadeOut
