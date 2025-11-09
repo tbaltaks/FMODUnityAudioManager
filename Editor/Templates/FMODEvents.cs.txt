@@ -8,16 +8,16 @@ namespace TBaltaks.FMODManagement
         public static FMODEvents Instance;
 
         /* Add and fill out fmod events as needed */
-        [Header(""Music"")]
+        [Header("Music")]
         public EventReference musicEvent;
 
-        [Header(""Ambience"")]
+        [Header("Ambience")]
         public EventReference ambienceEvent;
 
-        [Header(""SFX"")]
+        [Header("SFX")]
         public EventReference sfxEvent;
 
-        [Header(""UI"")]
+        [Header("UI")]
         public EventReference uiEvent;
 
 
