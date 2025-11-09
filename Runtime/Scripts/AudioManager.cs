@@ -4,7 +4,7 @@ using UnityEngine;
 using FMODUnity;
 using FMOD.Studio;
 
-namespace TBaltaks.FMODAudioManager
+namespace TBaltaks.FMODAudioManager.Runtime
 {
     public enum LocalAudioParameter 
     { 

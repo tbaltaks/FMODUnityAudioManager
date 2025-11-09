@@ -1,7 +1,7 @@
 using UnityEngine;
 using FMODUnity;
 
-namespace TBaltaks.FMODAudioManager
+namespace TBaltaks.FMODAudioManager.Runtime
 {
     public class FMODEvents : MonoBehaviour
     {
