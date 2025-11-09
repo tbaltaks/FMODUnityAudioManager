@@ -1,0 +1,12 @@
+namespace TBaltaks.FMODManagement
+{
+    public enum LocalAudioParameter
+    {
+        // Local parameters go here and must be spelt exactly as they are in the FMOD project
+    }
+
+    public enum GlobalAudioParameter
+    {
+        // Global parameters go here and must be spelt exactly as they are in the FMOD project
+    }
+}

@@ -6,87 +6,75 @@ using System.IO;
 [InitializeOnLoad]
 public static class EditorScriptAutoGenerator
 {
-    private const string GeneratedFolder = "Assets/Plugins/FMOD Management";
-    private const string ParamsPath = GeneratedFolder + "/FMODParameters.cs";
-    private const string EventsPath = GeneratedFolder + "/FMODEvents.cs";
-    private const string PackagePath = "Packages/FMOD-Unity Audio Manager";
+    private const string TargetFolder = "Assets/Plugins/FMOD Management";
+    private const string TemplatesSubfolder = "Templates";
+
 
     static EditorScriptAutoGenerator()
     {
-        EditorApplication.delayCall += () =>
+        EditorApplication.delayCall += TryGenerateScripts;
+    }
+    
+    
+    private static void TryGenerateScripts()
+    {
+        string packagePath = FindThisPackagePath();
+        if (packagePath == null)
         {
-            CreateIfMissing();
-        };
-    }
-
-    private static void CreateIfMissing()
-    {
-        if (!Directory.Exists(GeneratedFolder))
-            Directory.CreateDirectory(GeneratedFolder);
-
-        if (!File.Exists(ParamsPath))
-        {
-            var paramsContent = @"namespace TBaltaks.FMODManagement
-{
-    public enum LocalAudioParameter
-    {
-        // Local parameters go here and must be spelt exactly as they are in the FMOD project
-    }
-
-    public enum GlobalAudioParameter
-    {
-        // Global parameters go here and must be spelt exactly as they are in the FMOD project
-    }
-}";
-            File.WriteAllText(ParamsPath, paramsContent);
-            AssetDatabase.ImportAsset(ParamsPath);
-            Debug.Log($"EditorScriptAutoGenerator Created {ParamsPath}");
+            Debug.LogWarning("[FMOD Manager] Could not find package path — skipping script generation.");
+            return;
         }
 
-        if (!File.Exists(EventsPath))
+        string templatesPath = Path.Combine(packagePath, TemplatesSubfolder);
+        if (!Directory.Exists(templatesPath))
         {
-            var eventsContent = @"using UnityEngine;
-using FMODUnity;
+            Debug.LogWarning("[FMOD Manager] Templates folder missing in package: " + templatesPath);
+            return;
+        }
 
-namespace TBaltaks.FMODManagement
-{
-    public class FMODEvents : MonoBehaviour
-    {
-        public static FMODEvents Instance;
-
-        /* Add and fill out fmod events as needed */
-        [Header(""Music"")]
-        public EventReference musicEvent;
-
-        [Header(""Ambience"")]
-        public EventReference ambienceEvent;
-
-        [Header(""SFX"")]
-        public EventReference sfxEvent;
-
-        [Header(""UI"")]
-        public EventReference uiEvent;
-
-
-        void Awake()
+        if (!Directory.Exists(TargetFolder))
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
+            Directory.CreateDirectory(TargetFolder);
+        }
 
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-    }
-}";
-            File.WriteAllText(EventsPath, eventsContent);
-            AssetDatabase.ImportAsset(EventsPath);
-            Debug.Log($"EditorScriptAutoGenerator Created {EventsPath}");
-        }
+        CopyTemplate(templatesPath, "FMODParameters.cs.txt", "FMODParameters.cs");
+        CopyTemplate(templatesPath, "FMODEvents.cs.txt", "FMODEvents.cs");
+        CopyTemplate(templatesPath, "AudioManager.cs.txt", "AudioManager.cs");
 
         AssetDatabase.Refresh();
+        Debug.Log("[FMOD Manager] Generated scripts in " + TargetFolder);
+    }
+
+
+    private static void CopyTemplate(string templatesPath, string sourceFile, string destinationFile)
+    {
+        string sourcePath = Path.Combine(templatesPath, sourceFile);
+        string destinationPath = Path.Combine(TargetFolder, destinationFile);
+
+        if (File.Exists(sourcePath))
+        {
+            File.Copy(sourcePath, destinationPath, overwrite: false);
+        }
+        else
+        {
+            Debug.LogWarning("[FMOD Manager] Missing template: " + sourcePath);
+        }
+    }
+
+
+    private static string FindThisPackagePath()
+    {
+        // Find this script's location inside the Packages folder
+        string[] guids = AssetDatabase.FindAssets("EditorScriptAutoGenerator t:Script");
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            if (path.Contains("Packages/"))
+            {
+                return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), ".."));
+            }
+        }
+        return null;
     }
 }
 #endif
