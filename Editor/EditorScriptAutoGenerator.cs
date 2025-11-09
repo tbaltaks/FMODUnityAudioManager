@@ -15,9 +15,6 @@ public static class EditorScriptAutoGenerator
     {
         EditorApplication.delayCall += () =>
         {
-            // Only run when the package folder is present
-            //if (!Directory.Exists(PackagePath)) return;
-
             CreateIfMissing();
         };
     }
