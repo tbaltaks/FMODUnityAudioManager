@@ -1,6 +1,6 @@
 ﻿{
-  "name": "FMODUnityAudioManager.Runtime",
-  "rootNamespace": "TBaltaks.FMODAudioManager.Runtime",
+  "name": "FMODAudioManager",
+  "rootNamespace": "TBaltaks.FMODAudioManager",
   "references": [
     "FMODUnity"
   ],
