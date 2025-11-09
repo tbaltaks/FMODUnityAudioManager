@@ -7,7 +7,7 @@ using System.IO;
 public static class EditorScriptAutoGenerator
 {
     private const string TargetFolder = "Assets/Plugins/FMOD Management";
-    private const string TemplatesSubfolder = "Templates";
+    private const string TemplatesSubfolder = "Editor/Templates";
 
 
     static EditorScriptAutoGenerator()
@@ -32,17 +32,12 @@ public static class EditorScriptAutoGenerator
             return;
         }
 
-        if (!Directory.Exists(TargetFolder))
-        {
-            Directory.CreateDirectory(TargetFolder);
-        }
-
+        if (!Directory.Exists(TargetFolder)) Directory.CreateDirectory(TargetFolder);
         CopyTemplate(templatesPath, "FMODParameters.cs.txt", "FMODParameters.cs");
         CopyTemplate(templatesPath, "FMODEvents.cs.txt", "FMODEvents.cs");
         CopyTemplate(templatesPath, "AudioManager.cs.txt", "AudioManager.cs");
 
         AssetDatabase.Refresh();
-        Debug.Log("[FMOD Manager] Generated scripts in " + TargetFolder);
     }
 
 
@@ -51,14 +46,20 @@ public static class EditorScriptAutoGenerator
         string sourcePath = Path.Combine(templatesPath, sourceFile);
         string destinationPath = Path.Combine(TargetFolder, destinationFile);
 
-        if (File.Exists(sourcePath))
-        {
-            File.Copy(sourcePath, destinationPath, overwrite: false);
-        }
-        else
+        if (!File.Exists(sourcePath))
         {
             Debug.LogWarning("[FMOD Manager] Missing template: " + sourcePath);
+            return;
         }
+
+        if (File.Exists(destinationPath))
+        {
+            Debug.Log($"[FMOD Manager] {destinationFile} already exsists");
+            return;
+        }
+
+        File.Copy(sourcePath, destinationPath);
+        Debug.Log($"[FMOD Manager] Created {destinationFile}");
     }
 
 
