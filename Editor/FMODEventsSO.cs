@@ -37,7 +37,7 @@ namespace TBaltaks.FMODManagement.Editor
             if (!Directory.Exists(GeneratedScriptsFolder)) Directory.CreateDirectory(GeneratedScriptsFolder);
 
             string destinationPath = Path.Combine(GeneratedScriptsFolder, FileName);
-            string fileContents = ContructFileContents();
+            string fileContents = ConstructFileContents();
 
             if (File.Exists(destinationPath))
             {
@@ -55,7 +55,7 @@ namespace TBaltaks.FMODManagement.Editor
         }
 
 
-        private string ContructFileContents()
+        private string ConstructFileContents()
         {
             StringBuilder stringBuilder = new();
 
@@ -114,9 +114,16 @@ namespace TBaltaks.FMODManagement.Editor
                 stringBuilder.AppendLine("        static FMODEvents()");
                 stringBuilder.AppendLine("        {");
 
-                foreach (string label in eventLabels)
+                if (eventLabels.Count < 1)
                 {
-                    stringBuilder.AppendLine($"            {label} = RuntimeManager.PathToEventReference(\"{eventPaths[label]}\");");
+                    stringBuilder.AppendLine($"            // ...see?");
+                }
+                else
+                {
+                    foreach (string label in eventLabels)
+                    {
+                        stringBuilder.AppendLine($"            {label} = RuntimeManager.PathToEventReference(\"{eventPaths[label]}\");");
+                    }
                 }
 
                 stringBuilder.AppendLine("        }");

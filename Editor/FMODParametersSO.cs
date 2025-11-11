@@ -30,7 +30,7 @@ namespace TBaltaks.FMODManagement.Editor
             if (!Directory.Exists(GeneratedScriptsFolder)) Directory.CreateDirectory(GeneratedScriptsFolder);
 
             string destinationPath = Path.Combine(GeneratedScriptsFolder, FileName);
-            string fileContents = ContructFileContents();
+            string fileContents = ConstructFileContents();
 
             if (File.Exists(destinationPath))
             {
@@ -48,7 +48,7 @@ namespace TBaltaks.FMODManagement.Editor
         }
 
 
-        private string ContructFileContents()
+        private string ConstructFileContents()
         {
             StringBuilder stringBuilder = new();
 
