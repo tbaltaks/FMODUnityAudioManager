@@ -68,8 +68,6 @@ namespace TBaltaks.FMODManagement.Editor
             stringBuilder.AppendLine("{");
             stringBuilder.AppendLine("    public static class FMODEvents");
             stringBuilder.AppendLine("    {");
-            stringBuilder.AppendLine("        public static bool IsInitialized { get; private set; }");
-            stringBuilder.AppendLine();
 
             AppendEventReferences(stringBuilder, eventGroups);
 
@@ -82,6 +80,7 @@ namespace TBaltaks.FMODManagement.Editor
             void AppendEventReferences(StringBuilder stringBuilder, EventGroup[] eventGroups)
             {
                 List<string> eventLabels = new();
+                Dictionary<string, string> eventPaths = new();
 
                 if (eventGroups.Length < 1)
                 {
@@ -96,8 +95,10 @@ namespace TBaltaks.FMODManagement.Editor
                             foreach (EventReference reference in group.events)
                             {
                                 string label = FormattedEventLabel(reference);
-                                stringBuilder.AppendLine($"        public static EventReference {label};");
                                 eventLabels.Add(label);
+                                eventPaths.Add(label, reference.Path);
+
+                                stringBuilder.AppendLine($"        public static EventReference {label};");
                             }
                         }
                     }
@@ -109,32 +110,22 @@ namespace TBaltaks.FMODManagement.Editor
                 }
 
                 stringBuilder.AppendLine();
-                stringBuilder.AppendLine("        public static void Initialize(");
-
-                for (int i = 0; i < eventLabels.Count; i++)
-                {
-                    string lineEnd = (i < eventLabels.Count - 1) ? "," : "";
-                    stringBuilder.AppendLine($"            EventReference {eventLabels[i]}Reference{lineEnd}");
-                }
-
-                stringBuilder.AppendLine("        ){");
-                stringBuilder.AppendLine("            if (IsInitialized) return;");
                 stringBuilder.AppendLine();
+                stringBuilder.AppendLine("        static FMODEvents()");
+                stringBuilder.AppendLine("        {");
 
                 foreach (string label in eventLabels)
                 {
-                    stringBuilder.AppendLine($"            {label} = {label}Reference;");
+                    stringBuilder.AppendLine($"            {label} = RuntimeManager.PathToEventReference(\"{eventPaths[label]}\");");
                 }
 
-                stringBuilder.AppendLine();
-                stringBuilder.AppendLine("            IsInitialized = true;");
                 stringBuilder.AppendLine("        }");
             }
 
 
             string FormattedEventLabel(EventReference eventReference)
             {
-                string path = eventReference.ToString();
+                string path = eventReference.Path;
                 string name = path.Substring(path.LastIndexOf('/') + 1);
 
                 int dotIndex = name.LastIndexOf('.');
