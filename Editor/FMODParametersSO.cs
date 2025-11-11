@@ -53,14 +53,14 @@ namespace TBaltaks.FMODManagement.Editor
             stringBuilder.AppendLine("{");
 
             // --- LocalAudioParameters ---
-            stringBuilder.AppendLine("    public enum LocalAudioParameters");
+            stringBuilder.AppendLine("    public enum LocalAudioParameter");
             stringBuilder.AppendLine("    {");
             AppendEnumValues(stringBuilder, LocalAudioParameters);
             stringBuilder.AppendLine("    }");
             stringBuilder.AppendLine();
 
             // --- GlobalAudioParameters ---
-            stringBuilder.AppendLine("    public enum GlobalAudioParameters");
+            stringBuilder.AppendLine("    public enum GlobalAudioParameter");
             stringBuilder.AppendLine("    {");
             AppendEnumValues(stringBuilder, GlobalAudioParameters);
             stringBuilder.AppendLine("    }");
