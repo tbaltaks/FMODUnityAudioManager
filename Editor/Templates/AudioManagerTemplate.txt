@@ -6,33 +6,74 @@ using FMOD.Studio;
 
 namespace TBaltaks.FMODManagement
 {
-    public class AudioManager : MonoBehaviour
+    public class AudioManager : IDisposable
     {
-        public static AudioManager Instance;
+        private static AudioManager _instance;
+        private static readonly object _lock = new();
+
+        public static AudioManager Instance
+        {
+            get
+            {
+                if (_instance != null) return _instance;
+                lock (_lock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new AudioManager();
+                    }
+                    return _instance;
+                }
+            }
+        }
+
         private Dictionary<int, EventInstance> eventInstances = new();
         private Dictionary<EventDescription, Dictionary<LocalAudioParameter, PARAMETER_ID>> localParameterIDs = new();
         private Dictionary<GlobalAudioParameter, PARAMETER_ID> globalParameterIDs = new();
 
+        private bool _isDisposed = false;
 
-        private void Awake()
+
+        private AudioManager()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-
+            Application.quitting += OnApplicationQuit;
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+#endif
             CacheGlobalParameterIDs();
         }
 
 
-        private void OnDisable()
+        public void Dispose()
         {
-            CleanUp();
+            if (_isDisposed) return;
+            _isDisposed = true;
+
+            Application.quitting -= OnApplicationQuit;
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+#endif
+            _instance = null;
         }
+
+
+        private void OnApplicationQuit()
+        {
+            CleanUp(false);
+            Dispose();
+        }
+
+
+#if UNITY_EDITOR
+        private void OnPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
+        {
+            if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
+            {
+                CleanUp(false);
+                Dispose();
+            }
+        }
+#endif
 
 
         private void CleanUp(bool doesCleanUpAllowFadeOut = true)
