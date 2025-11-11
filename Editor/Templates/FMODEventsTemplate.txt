@@ -7,12 +7,6 @@ namespace TBaltaks.FMODManagement
 {
     public static class FMODEvents
     {
-        public static bool IsInitialized { get; private set; }
-
-        public static void Initialize()
-        {
-            if (IsInitialized) return;
-            IsInitialized = true;
-        }
+        // Nothing to see here
     }
 }
