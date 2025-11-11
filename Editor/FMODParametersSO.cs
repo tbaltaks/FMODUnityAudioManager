@@ -6,7 +6,6 @@ using UnityEditor;
 
 namespace TBaltaks.FMODManagement.Editor
 {
-    [CreateAssetMenu(menuName = "TESTING/FMODParameters")]
     public class FMODParametersSO : ScriptableObject
     {
         [SerializeField] private string[] LocalAudioParameters;
@@ -74,7 +73,7 @@ namespace TBaltaks.FMODManagement.Editor
             {
                 if (values == null || values.Length == 0)
                 {
-                    stringBuilder.AppendLine("// No parameters listed");
+                    stringBuilder.AppendLine("        // No parameters listed");
                     return;
                 }
 
