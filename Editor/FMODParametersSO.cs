@@ -78,16 +78,15 @@ namespace TBaltaks.FMODManagement.Editor
 
             void AppendEnumValues(StringBuilder stringBuilder, string[] values)
             {
-                if (values == null || values.Length == 0)
+                if (values == null || values.Length < 1)
                 {
                     stringBuilder.AppendLine("        // No parameters listed");
                     return;
                 }
 
-                for (int i = 0; i < values.Length; i++)
+                foreach (string value in values)
                 {
-                    string lineEnd = (i < values.Length - 1) ? "," : "";
-                    stringBuilder.AppendLine($"        {FormattedEnumValue(values[i])}{lineEnd}");
+                    stringBuilder.AppendLine($"        {FormattedEnumValue(value)},");
                 }
             }
 
