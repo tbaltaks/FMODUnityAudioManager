@@ -94,27 +94,7 @@ namespace TBaltaks.FMODManagement.Editor
 
             string FormattedEnumValue(string value)
             {
-                StringBuilder stringBuilder = new();
-
-                string[] parts = Regex.Split(value, @"[^A-Za-z0-9]+").Where(s => s.Length > 0).ToArray();
-                for (int i = 0; i < parts.Length; i++)
-                {
-                    string part = parts[i];
-                    if (i == 0)
-                    {
-                        stringBuilder.Append(char.ToLowerInvariant(part[0]));
-                        if (part.Length > 1) stringBuilder.Append(part.Substring(1));
-                    }
-                    else
-                    {
-                        stringBuilder.Append(char.ToUpperInvariant(part[0]));
-                        if (part.Length > 1) stringBuilder.Append(part.Substring(1).ToLowerInvariant());
-                    }
-                }
-
-                string formattedValue = stringBuilder.ToString();
-
-                if (char.IsDigit(formattedValue[0])) formattedValue = "_" + formattedValue;
+                if (char.IsDigit(value[0])) value = "_" + value;
 
                 var csharpKeywords = new HashSet<string>(StringComparer.Ordinal)
                 {
@@ -125,9 +105,9 @@ namespace TBaltaks.FMODManagement.Editor
                     "ref","return","sbyte","sealed","short","sizeof","stackalloc","static","string","struct","switch","this",
                     "throw","true","try","typeof","uint","ulong","unchecked","unsafe","ushort","using","virtual","void","volatile","while"
                 };
-                if (csharpKeywords.Contains(formattedValue)) formattedValue = "_" + formattedValue;
-
-                formattedValue = Regex.Replace(formattedValue, @"[^A-Za-z0-9_]", "");
+                if (csharpKeywords.Contains(value)) value = "_" + value;
+                
+                string formattedValue = Regex.Replace(value, @"[^A-Za-z0-9_]", "");
 
                 return formattedValue;
             }
