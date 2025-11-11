@@ -8,7 +8,6 @@ namespace TBaltaks.FMODManagement.Editor
     [InitializeOnLoad]
     public static class ScriptAutoGenerator
     {
-        private const string FMODManagementFolder = "Assets/Plugins/FMOD Management";
         private const string GeneratedScriptsFolder = "Assets/Plugins/FMOD Management/GeneratedScripts";
         private const string TemplatesSubfolder = "Editor/Templates";
 
@@ -35,21 +34,20 @@ namespace TBaltaks.FMODManagement.Editor
                 return;
             }
 
-            if (!Directory.Exists(FMODManagementFolder)) Directory.CreateDirectory(FMODManagementFolder);
             if (!Directory.Exists(GeneratedScriptsFolder)) Directory.CreateDirectory(GeneratedScriptsFolder);
 
-            CreateScript(templatesPath, GeneratedScriptsFolder, "FMODParametersTemplate.txt", "FMODParameters.cs");
-            CreateScript(templatesPath, GeneratedScriptsFolder, "FMODEventsTemplate.txt", "FMODEvents.cs");
-            CreateScript(templatesPath, FMODManagementFolder, "AudioManagerTemplate.txt", "AudioManager.cs");
+            CreateScript(templatesPath, "FMODParametersTemplate.txt", "FMODParameters.cs");
+            CreateScript(templatesPath, "FMODEventsTemplate.txt", "FMODEvents.cs");
+            CreateScript(templatesPath, "AudioManagerTemplate.txt", "AudioManager.cs");
 
             AssetDatabase.Refresh();
         }
 
 
-        private static void CreateScript(string sourceFolder, string destinationFolder, string sourceFile, string destinationFile)
+        private static void CreateScript(string sourceFolder, string sourceFile, string destinationFile)
         {
             string sourcePath = Path.Combine(sourceFolder, sourceFile);
-            string destinationPath = Path.Combine(destinationFolder, destinationFile);
+            string destinationPath = Path.Combine(GeneratedScriptsFolder, destinationFile);
 
             if (!File.Exists(sourcePath))
             {
