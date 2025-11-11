@@ -1,5 +1,8 @@
 using FMODUnity;
 
+/* THIS IS A CODE GENERATED SCRIPT */
+   /* ... PLEASE NO TOUCHY ... */
+
 namespace TBaltaks.FMODManagement
 {
     public static class FMODEvents

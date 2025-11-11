@@ -7,12 +7,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using FMODUnity;
-using FMOD.Studio;
 using UnityEditor;
 
 namespace TBaltaks.FMODManagement.Editor
 {
-    [CreateAssetMenu(menuName = "TESTING/FMODEvents")]
     public class FMODEventsSO : ScriptableObject
     {
         [Serializable]
@@ -63,6 +61,9 @@ namespace TBaltaks.FMODManagement.Editor
 
             stringBuilder.AppendLine("using FMODUnity;");
             stringBuilder.AppendLine();
+            stringBuilder.AppendLine("/* THIS IS A CODE GENERATED SCRIPT */");
+            stringBuilder.AppendLine("   /* ... PLEASE NO TOUCHY ... */");
+            stringBuilder.AppendLine();
             stringBuilder.AppendLine("namespace TBaltaks.FMODManagement");
             stringBuilder.AppendLine("{");
             stringBuilder.AppendLine("    public static class FMODEvents");
@@ -82,22 +83,38 @@ namespace TBaltaks.FMODManagement.Editor
             {
                 List<string> eventLabels = new();
 
-                foreach (EventGroup group in eventGroups)
+                if (eventGroups.Length < 1)
                 {
-                    foreach (EventReference reference in group.events)
+                    stringBuilder.AppendLine($"        // No events listed");
+                }
+                else
+                {
+                    foreach (EventGroup group in eventGroups)
                     {
-                        string label = FormattedEventLabel(reference);
-                        stringBuilder.AppendLine($"public static EventReference {label};");
-                        eventLabels.Add(label);
+                        if (group.events.Length > 0)
+                        {
+                            foreach (EventReference reference in group.events)
+                            {
+                                string label = FormattedEventLabel(reference);
+                                stringBuilder.AppendLine($"        public static EventReference {label};");
+                                eventLabels.Add(label);
+                            }
+                        }
+                    }
+
+                    if (eventLabels.Count < 1)
+                    {
+                        stringBuilder.AppendLine($"        // No events listed");
                     }
                 }
 
                 stringBuilder.AppendLine();
                 stringBuilder.AppendLine("        public static void Initialize(");
 
-                foreach (string label in eventLabels)
+                for (int i = 0; i < eventLabels.Count; i++)
                 {
-                    stringBuilder.AppendLine($"EventReference {label}Reference");
+                    string lineEnd = (i < eventLabels.Count - 1) ? "," : "";
+                    stringBuilder.AppendLine($"            EventReference {eventLabels[i]}Reference{lineEnd}");
                 }
 
                 stringBuilder.AppendLine("        ){");
@@ -106,9 +123,10 @@ namespace TBaltaks.FMODManagement.Editor
 
                 foreach (string label in eventLabels)
                 {
-                    stringBuilder.AppendLine($"{label} = {label}Reference");
+                    stringBuilder.AppendLine($"            {label} = {label}Reference;");
                 }
 
+                stringBuilder.AppendLine();
                 stringBuilder.AppendLine("            IsInitialized = true;");
                 stringBuilder.AppendLine("        }");
             }
@@ -116,13 +134,7 @@ namespace TBaltaks.FMODManagement.Editor
 
             string FormattedEventLabel(EventReference eventReference)
             {
-                EventDescription description = RuntimeManager.GetEventDescription(eventReference);
-                if (description.getPath(out string path) != FMOD.RESULT.OK)
-                {
-                    path = eventReference.ToString();
-                    Debug.Log($"[FMOD Manager] Could not find event path for {eventReference}; fell back to {path}");
-                }
-
+                string path = eventReference.ToString();
                 string name = path.Substring(path.LastIndexOf('/') + 1);
 
                 int dotIndex = name.LastIndexOf('.');

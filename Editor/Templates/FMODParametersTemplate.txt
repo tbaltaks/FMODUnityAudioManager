@@ -1,3 +1,6 @@
+/* THIS IS A CODE GENERATED SCRIPT */
+   /* ... PLEASE NO TOUCHY ... */
+
 namespace TBaltaks.FMODManagement
 {
     public enum LocalAudioParameter {}
