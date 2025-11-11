@@ -1,8 +1,8 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -82,7 +82,7 @@ namespace TBaltaks.FMODManagement.Editor
                 List<string> eventLabels = new();
                 Dictionary<string, string> eventPaths = new();
 
-                if (eventGroups.Length < 1)
+                if (eventGroups == null || eventGroups.Length < 1)
                 {
                     stringBuilder.AppendLine($"        // No events listed");
                 }
@@ -95,6 +95,7 @@ namespace TBaltaks.FMODManagement.Editor
                             foreach (EventReference reference in group.events)
                             {
                                 string label = FormattedEventLabel(reference);
+                                Debug.Log("Added " + label);
                                 eventLabels.Add(label);
                                 eventPaths.Add(label, reference.Path);
 
