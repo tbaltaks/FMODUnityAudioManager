@@ -125,6 +125,8 @@ namespace TBaltaks.FMODManagement.Editor
 
             string FormattedEventLabel(EventReference eventReference)
             {
+                StringBuilder stringBuilder = new();
+
                 string path = eventReference.Path;
                 string name = path.Substring(path.LastIndexOf('/') + 1);
 
@@ -132,8 +134,6 @@ namespace TBaltaks.FMODManagement.Editor
                 if (dotIndex > 0) name = name.Substring(0, dotIndex);
 
                 string[] parts = Regex.Split(name, @"[^A-Za-z0-9]+").Where(s => s.Length > 0).ToArray();
-
-                StringBuilder stringBuilder = new();
                 for (int i = 0; i < parts.Length; i++)
                 {
                     string part = parts[i];
