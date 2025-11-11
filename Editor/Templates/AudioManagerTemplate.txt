@@ -136,19 +136,19 @@ namespace TBaltaks.FMODManagement
         }
 
 
-        public void PlayOneShot(EventReference reference)
+        public void PlayOneShot(EventReference eventReference)
         {
-            RuntimeManager.PlayOneShot(reference);
+            RuntimeManager.PlayOneShot(eventReference);
         }
 
-        public void PlayOneShot(EventReference reference, Vector3 position)
+        public void PlayOneShot(EventReference eventReference, Vector3 position)
         {
-            RuntimeManager.PlayOneShot(reference, position);
+            RuntimeManager.PlayOneShot(eventReference, position);
         }
 
-        public void PlayOneShot(EventReference reference, GameObject emitter)
+        public void PlayOneShot(EventReference eventReference, GameObject emitter)
         {
-            RuntimeManager.PlayOneShotAttached(reference, emitter);
+            RuntimeManager.PlayOneShotAttached(eventReference, emitter);
         }
 
 

@@ -1,0 +1,5 @@
+namespace TBaltaks.FMODManagement
+{
+    public enum LocalAudioParameters {}
+    public enum GlobalAudioParameters {}
+}
