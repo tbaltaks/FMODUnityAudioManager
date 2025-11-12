@@ -6,8 +6,8 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using FMODUnity;
 using UnityEditor;
+using FMODUnity;
 
 namespace TBaltaks.FMODManagement.Editor
 {
