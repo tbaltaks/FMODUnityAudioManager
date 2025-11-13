@@ -15,7 +15,7 @@ namespace TBaltaks.FMODManagement.Editor
     [InitializeOnLoad]
     public static class ScriptAutoGenerator
     {
-        [SerializeField] private static bool debugLogging;
+        public static bool debugLogging;
 
         private const string TargetFolder = "Assets/Plugins/FMOD Management";
         private static string pathToThis;
