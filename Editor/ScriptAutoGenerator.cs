@@ -15,6 +15,8 @@ namespace TBaltaks.FMODManagement.Editor
     [InitializeOnLoad]
     public static class ScriptAutoGenerator
     {
+        [SerializeField] private static bool debugLogging;
+
         private const string TargetFolder = "Assets/Plugins/FMOD Management";
         private static string pathToThis;
 
@@ -54,7 +56,7 @@ namespace TBaltaks.FMODManagement.Editor
             }
 
             AssetDatabase.Refresh();
-            Debug.Log($"[FMOD Manager] ScriptAutoGenerator finished generating");
+            if (debugLogging) Debug.Log($"[FMOD Manager] ScriptAutoGenerator finished generating");
         }
 
 
@@ -82,7 +84,7 @@ namespace TBaltaks.FMODManagement.Editor
             {
                 string parameterName = parameterDescription.name;
                 parameterNames.Add(parameterName);
-                Debug.Log($"[FMOD Manager] Found global parameter {parameterName} during script generation");
+                if (debugLogging) Debug.Log($"[FMOD Manager] Found global parameter {parameterName} during script generation");
             }
 
             return parameterNames.ToList();
@@ -101,7 +103,7 @@ namespace TBaltaks.FMODManagement.Editor
                     if (eventDescription.getParameterDescriptionByIndex(i, out PARAMETER_DESCRIPTION parameterDescription) != FMOD.RESULT.OK) return null;
                     string parameterName = parameterDescription.name;
                     if (!parameterNames.Contains(parameterName)) parameterNames.Add(parameterName);
-                    Debug.Log($"[FMOD Manager] Found local parameter {parameterName} during script generation");
+                    if (debugLogging) Debug.Log($"[FMOD Manager] Found local parameter {parameterName} during script generation");
                 }
             }
 
@@ -119,13 +121,13 @@ namespace TBaltaks.FMODManagement.Editor
                 string existingContents = File.ReadAllText(destinationPath);
                 if (existingContents == fileContents)
                 {
-                    Debug.Log($"No changes detected in FMODEvents.cs; skipping rewrite.");
+                    if (debugLogging) Debug.Log($"No changes detected in FMODEvents.cs; skipping rewrite.");
                     return;
                 }
             }
 
             File.WriteAllText(destinationPath, fileContents);
-            Debug.Log($"[FMOD Manager] Created FMODEvents.cs");
+            if (debugLogging) Debug.Log($"[FMOD Manager] Created FMODEvents.cs");
 
 
             static string ConstructFileContents(List<EventDescription> eventDescriptions)
@@ -165,7 +167,7 @@ namespace TBaltaks.FMODManagement.Editor
                         {
                             description.getPath(out string path);
                             string label = FormattedEventLabel(path);
-                            Debug.Log("Added " + label);
+                            if (debugLogging) Debug.Log("Found and added event: " + label);
                             eventLabels.Add(label);
                             eventPaths.Add(label, path);
 
@@ -239,7 +241,6 @@ namespace TBaltaks.FMODManagement.Editor
                     if (csharpKeywords.Contains(formattedLabel)) formattedLabel = "_" + formattedLabel;
 
                     formattedLabel = Regex.Replace(formattedLabel, @"[^A-Za-z0-9_]", "");
-
                     return formattedLabel;
                 }
             }
@@ -256,13 +257,13 @@ namespace TBaltaks.FMODManagement.Editor
                 string existingContents = File.ReadAllText(destinationPath);
                 if (existingContents == fileContents)
                 {
-                    Debug.Log($"No changes detected in FMODParameters.cs; skipping rewrite.");
+                    if (debugLogging) Debug.Log($"No changes detected in FMODParameters.cs; skipping rewrite.");
                     return;
                 }
             }
 
             File.WriteAllText(destinationPath, fileContents);
-            Debug.Log($"[FMOD Manager] Created FMODParameters.cs");
+            if (debugLogging) Debug.Log($"[FMOD Manager] Created FMODParameters.cs");
 
 
             static string ConstructFileContents(List<string> globalParameters, List<string> localParameters)
@@ -286,8 +287,8 @@ namespace TBaltaks.FMODManagement.Editor
                 stringBuilder.AppendLine("    {");
                 AppendEnumValues(stringBuilder, localParameters);
                 stringBuilder.AppendLine("    }");
-                stringBuilder.AppendLine();
 
+                stringBuilder.AppendLine();
                 stringBuilder.AppendLine("}");
 
                 return stringBuilder.ToString();
@@ -343,12 +344,12 @@ namespace TBaltaks.FMODManagement.Editor
 
             if (File.Exists(destinationPath))
             {
-                Debug.Log($"[FMOD Manager] AudioManager.cs already exsists");
+                if (debugLogging) Debug.Log($"[FMOD Manager] AudioManager.cs already exsists");
                 return;
             }
 
             File.Copy(sourcePath, destinationPath);
-            Debug.Log($"[FMOD Manager] Created AudioManager.cs");
+            if (debugLogging) Debug.Log($"[FMOD Manager] Created AudioManager.cs");
         }
 
 
