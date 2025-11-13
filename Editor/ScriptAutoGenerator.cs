@@ -16,7 +16,7 @@ namespace TBaltaks.FMODManagement.Editor
     public static class ScriptAutoGenerator
     {
         private const string TargetFolder = "Assets/Plugins/FMOD Management";
-        private static string thisPath;
+        private static string pathToThis;
 
 
         static ScriptAutoGenerator()
@@ -27,8 +27,8 @@ namespace TBaltaks.FMODManagement.Editor
         
         private static void TryGenerateScripts()
         {
-            thisPath = FindPathToThis();
-            if (thisPath == null)
+            pathToThis = FindPathToThis();
+            if (pathToThis == null)
             {
                 Debug.LogWarning("[FMOD Manager] Could not find package path — skipping script generation.");
                 return;
@@ -42,7 +42,7 @@ namespace TBaltaks.FMODManagement.Editor
                 var fmodSystem = EditorUtils.System;
                 List<EventDescription> eventDescriptions = GetAllEventDescriptions(fmodSystem);
                 List<string> globalParameterNames = GetGlobalParameterNames(fmodSystem);
-                List<string> localParameterNames = GetLocalParameterNames(fmodSystem, eventDescriptions);
+                List<string> localParameterNames = GetLocalParameterNames(eventDescriptions);
 
                 GenerateFMODEventsScript(eventDescriptions);
                 GenerateFMODParametersScript(globalParameterNames, localParameterNames);
@@ -89,7 +89,7 @@ namespace TBaltaks.FMODManagement.Editor
         }
 
 
-        private static List<string> GetLocalParameterNames(FMOD.Studio.System fmodSystem, List<EventDescription> eventDescriptions)
+        private static List<string> GetLocalParameterNames(List<EventDescription> eventDescriptions)
         {
             HashSet<string> parameterNames = new();
 
@@ -332,7 +332,7 @@ namespace TBaltaks.FMODManagement.Editor
 
         private static void GenerateAudioManagerScript()
         {
-            string sourcePath = Path.Combine(thisPath, "AudioManagerTemplate.txt");
+            string sourcePath = Path.Combine(pathToThis, "AudioManagerTemplate.txt");
             string destinationPath = Path.Combine(TargetFolder, "AudioManager.cs");
 
             if (!File.Exists(sourcePath))
@@ -358,9 +358,10 @@ namespace TBaltaks.FMODManagement.Editor
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (path.Contains("Packages/"))
+                string directory = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(directory))
                 {
-                    return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), ".."));
+                    return Path.GetFullPath(directory);
                 }
             }
             return null;
