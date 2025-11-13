@@ -281,6 +281,8 @@ namespace TBaltaks.FMODManagement.Editor
                 stringBuilder.AppendLine("    {");
                 AppendEnumValues(stringBuilder, globalParameters);
                 stringBuilder.AppendLine("    }");
+                
+                stringBuilder.AppendLine();
 
                 // --- LocalAudioParameters ---
                 stringBuilder.AppendLine("    public enum LocalAudioParameter");
@@ -288,7 +290,6 @@ namespace TBaltaks.FMODManagement.Editor
                 AppendEnumValues(stringBuilder, localParameters);
                 stringBuilder.AppendLine("    }");
 
-                stringBuilder.AppendLine();
                 stringBuilder.AppendLine("}");
 
                 return stringBuilder.ToString();
