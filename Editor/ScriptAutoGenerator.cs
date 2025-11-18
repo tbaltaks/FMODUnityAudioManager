@@ -18,6 +18,7 @@ namespace TBaltaks.FMODManagement.Editor
         public static bool debugLogging;
 
         private const string TargetFolder = "Assets/Plugins/FMOD Management";
+        private const string TargetSubfolder = "/Generated Resources";
         private static string pathToThis;
 
 
@@ -36,7 +37,7 @@ namespace TBaltaks.FMODManagement.Editor
                 return;
             }
 
-            if (!Directory.Exists(TargetFolder)) Directory.CreateDirectory(TargetFolder);
+            if (!Directory.Exists(TargetFolder + TargetSubfolder)) Directory.CreateDirectory(TargetFolder + TargetSubfolder);
 
             EditorUtils.LoadPreviewBanks();
             try
@@ -113,7 +114,7 @@ namespace TBaltaks.FMODManagement.Editor
 
         private static void GenerateFMODEventsScript(List<EventDescription> eventDescriptions)
         {
-            string destinationPath = Path.Combine(TargetFolder, "FMODEvents.cs");
+            string destinationPath = Path.Combine(TargetFolder + TargetSubfolder, "FMODEvents.cs");
             string fileContents = ConstructFileContents(eventDescriptions);
 
             if (File.Exists(destinationPath))
@@ -134,8 +135,6 @@ namespace TBaltaks.FMODManagement.Editor
             {
                 StringBuilder stringBuilder = new();
 
-                stringBuilder.AppendLine("using FMODUnity;");
-                stringBuilder.AppendLine();
                 stringBuilder.AppendLine("/* THIS IS A CODE GENERATED SCRIPT */");
                 stringBuilder.AppendLine("   /* ... PLEASE NO TOUCHY ... */");
                 stringBuilder.AppendLine();
@@ -154,50 +153,20 @@ namespace TBaltaks.FMODManagement.Editor
 
                 void AppendEventReferences(StringBuilder stringBuilder, List<EventDescription> eventDescriptions)
                 {
-                    List<string> eventLabels = new();
-                    Dictionary<string, string> eventPaths = new();
-
                     if (eventDescriptions == null || eventDescriptions.Count < 1)
                     {
                         stringBuilder.AppendLine($"        // No events listed");
+                        return;
                     }
-                    else
+
+                    foreach (EventDescription description in eventDescriptions)
                     {
-                        foreach (EventDescription description in eventDescriptions)
-                        {
-                            description.getPath(out string path);
-                            string label = FormattedEventLabel(path);
-                            if (debugLogging) Debug.Log("Found and added event: " + label);
-                            eventLabels.Add(label);
-                            eventPaths.Add(label, path);
+                        description.getPath(out string path);
+                        string label = FormattedEventLabel(path);
+                        if (debugLogging) Debug.Log("Found and added event: " + label);
 
-                            stringBuilder.AppendLine($"        public static EventReference {label};");
-                        }
-
-                        if (eventLabels.Count < 1)
-                        {
-                            stringBuilder.AppendLine($"        // No events listed");
-                        }
+                        stringBuilder.AppendLine($"        public static string {label} = \"{path}\";");
                     }
-
-                    stringBuilder.AppendLine();
-                    stringBuilder.AppendLine();
-                    stringBuilder.AppendLine("        static FMODEvents()");
-                    stringBuilder.AppendLine("        {");
-
-                    if (eventLabels.Count < 1)
-                    {
-                        stringBuilder.AppendLine($"            // ...see?");
-                    }
-                    else
-                    {
-                        foreach (string label in eventLabels)
-                        {
-                            stringBuilder.AppendLine($"            {label} = RuntimeManager.PathToEventReference(\"{eventPaths[label]}\");");
-                        }
-                    }
-
-                    stringBuilder.AppendLine("        }");
                 }
 
 
@@ -230,14 +199,14 @@ namespace TBaltaks.FMODManagement.Editor
                     if (char.IsDigit(formattedLabel[0])) formattedLabel = "_" + formattedLabel;
 
                     var csharpKeywords = new HashSet<string>(StringComparer.Ordinal)
-                {
+                    {
                     "abstract","as","base","bool","break","byte","case","catch","char","checked","class","const","continue",
                     "decimal","default","delegate","do","double","else","enum","event","explicit","extern","false","finally",
                     "fixed","float","for","foreach","goto","if","implicit","in","int","interface","internal","is","lock","long",
                     "namespace","new","null","object","operator","out","override","params","private","protected","public","readonly",
                     "ref","return","sbyte","sealed","short","sizeof","stackalloc","static","string","struct","switch","this",
                     "throw","true","try","typeof","uint","ulong","unchecked","unsafe","ushort","using","virtual","void","volatile","while"
-                };
+                    };
                     if (csharpKeywords.Contains(formattedLabel)) formattedLabel = "_" + formattedLabel;
 
                     formattedLabel = Regex.Replace(formattedLabel, @"[^A-Za-z0-9_]", "");
@@ -249,7 +218,7 @@ namespace TBaltaks.FMODManagement.Editor
 
         private static void GenerateFMODParametersScript(List<string> globalParameters, List<string> localParameters)
         {
-            string destinationPath = Path.Combine(TargetFolder, "FMODParameters.cs");
+            string destinationPath = Path.Combine(TargetFolder + TargetSubfolder, "FMODParameters.cs");
             string fileContents = ConstructFileContents(globalParameters, localParameters);
 
             if (File.Exists(destinationPath))
@@ -305,12 +274,12 @@ namespace TBaltaks.FMODManagement.Editor
 
                     foreach (string value in values)
                     {
-                        stringBuilder.AppendLine($"        {FormattedEnumValue(value)},");
+                        stringBuilder.AppendLine($"        {value},");
                     }
                 }
 
 
-                string FormattedEnumValue(string value)
+                string FormattedEnumValue(string value) // UNUSED - DO NOT SANITISE
                 {
                     if (char.IsDigit(value[0])) value = "_" + value;
 
@@ -373,7 +342,10 @@ namespace TBaltaks.FMODManagement.Editor
         [MenuItem("Tools/FMOD-Unity Audio Manager/Regenerate FMOD resources")]
         private static void GenerateScriptsManually()
         {
+            bool previousSetting = debugLogging;
+            debugLogging = true;
             TryGenerateScripts();
+            debugLogging = previousSetting;
         }
     }
 }

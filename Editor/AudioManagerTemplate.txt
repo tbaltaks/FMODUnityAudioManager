@@ -121,41 +121,42 @@ namespace TBaltaks.FMODManagement
         }
 
 
-        private EventInstance CreateEventInstance(EventReference eventReference)
+        private EventInstance CreateEventInstance(string eventPath)
         {
-            EventInstance eventInstance = RuntimeManager.CreateInstance(eventReference);
+            EventInstance eventInstance = RuntimeManager.CreateInstance(eventPath);
             eventInstances.Add(eventInstance.GetHashCode(), eventInstance);
-            CacheLocalParameterIDs(RuntimeManager.GetEventDescription(eventReference));
+            eventInstance.getDescription(out EventDescription eventDescription);
+            CacheLocalParameterIDs(eventDescription);
             return eventInstance;
         }
 
 
-        public int StartNewEvent(EventReference eventReference)
+        public int StartNewEvent(string eventPath)
         {
-            EventInstance eventInstance = CreateEventInstance(eventReference);
+            EventInstance eventInstance = CreateEventInstance(eventPath);
             eventInstance.start();
             return eventInstance.GetHashCode();
         }
 
-        public int StartNewEvent(EventReference eventReference, Transform emitterTransform)
+        public int StartNewEvent(string eventPath, Transform emitterTransform)
         {
-            EventInstance eventInstance = CreateEventInstance(eventReference);
+            EventInstance eventInstance = CreateEventInstance(eventPath);
             RuntimeManager.AttachInstanceToGameObject(eventInstance, emitterTransform);
             eventInstance.start();
             return eventInstance.GetHashCode();
         }
 
-        public int StartNewEvent(EventReference eventReference, Transform emitterTransform, Rigidbody emitterRigidbody)
+        public int StartNewEvent(string eventPath, Transform emitterTransform, Rigidbody emitterRigidbody)
         {
-            EventInstance eventInstance = CreateEventInstance(eventReference);
+            EventInstance eventInstance = CreateEventInstance(eventPath);
             RuntimeManager.AttachInstanceToGameObject(eventInstance, emitterTransform, emitterRigidbody);
             eventInstance.start();
             return eventInstance.GetHashCode();
         }
 
-        public int StartNewEvent(EventReference eventReference, Transform emitterTransform, Rigidbody2D emitterRigidbody)
+        public int StartNewEvent(string eventPath, Transform emitterTransform, Rigidbody2D emitterRigidbody)
         {
-            EventInstance eventInstance = CreateEventInstance(eventReference);
+            EventInstance eventInstance = CreateEventInstance(eventPath);
             RuntimeManager.AttachInstanceToGameObject(eventInstance, emitterTransform, emitterRigidbody);
             eventInstance.start();
             return eventInstance.GetHashCode();
@@ -177,19 +178,19 @@ namespace TBaltaks.FMODManagement
         }
 
 
-        public void PlayOneShot(EventReference eventReference)
+        public void PlayOneShot(string eventPath)
         {
-            RuntimeManager.PlayOneShot(eventReference);
+            RuntimeManager.PlayOneShot(eventPath);
         }
 
-        public void PlayOneShot(EventReference eventReference, Vector3 position)
+        public void PlayOneShot(string eventPath, Vector3 position)
         {
-            RuntimeManager.PlayOneShot(eventReference, position);
+            RuntimeManager.PlayOneShot(eventPath, position);
         }
 
-        public void PlayOneShot(EventReference eventReference, GameObject emitter)
+        public void PlayOneShot(string eventPath, GameObject emitter)
         {
-            RuntimeManager.PlayOneShotAttached(eventReference, emitter);
+            RuntimeManager.PlayOneShotAttached(eventPath, emitter);
         }
 
 
