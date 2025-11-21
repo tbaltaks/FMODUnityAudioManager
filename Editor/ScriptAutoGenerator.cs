@@ -49,7 +49,8 @@ namespace TBaltaks.FMODManagement.Editor
 
                 GenerateFMODEventsScript(eventDescriptions);
                 GenerateFMODParametersScript(globalParameterNames, localParameterNames);
-                GenerateAudioManagerScript();
+                CopyTemplate("fmodunity-audio-manager-Template.txt", "fmodunity-audio-manager.asmdef");
+                CopyTemplate("AudioManagerTemplate.txt", "AudioManager.cs");
             }
             finally
             {
@@ -301,10 +302,10 @@ namespace TBaltaks.FMODManagement.Editor
         }
 
 
-        private static void GenerateAudioManagerScript()
+        private static void CopyTemplate(string templateFileName, string newFileName)
         {
-            string sourcePath = Path.Combine(pathToThis, "AudioManagerTemplate.txt");
-            string destinationPath = Path.Combine(TargetFolder, "AudioManager.cs");
+            string sourcePath = Path.Combine(pathToThis, templateFileName);
+            string destinationPath = Path.Combine(TargetFolder, newFileName);
 
             if (!File.Exists(sourcePath))
             {
@@ -314,12 +315,12 @@ namespace TBaltaks.FMODManagement.Editor
 
             if (File.Exists(destinationPath))
             {
-                if (debugLogging) Debug.Log($"[FMOD Manager] AudioManager.cs already exsists");
+                if (debugLogging) Debug.Log($"[FMOD Manager] {newFileName} already exsists");
                 return;
             }
 
             File.Copy(sourcePath, destinationPath);
-            if (debugLogging) Debug.Log($"[FMOD Manager] Created AudioManager.cs");
+            if (debugLogging) Debug.Log($"[FMOD Manager] Created {newFileName}");
         }
 
 
