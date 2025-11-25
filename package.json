@@ -1,8 +1,8 @@
-﻿{
+{
     "name": "com.tombaltaks.fmodunity-audio-manager",
     "version": "1.0.0",
     "displayName": "FMOD-Unity Audio Manager",
-    "description": "Lightweight audio manager + FMOD event container for Unity. Requires FMOD for Unity integration to be installed in the project.",
+    "description": "A Lightweight audio manager + static FMOD event and parameter containers. Requires FMOD for Unity integration to be installed in the project.",
     "unity": "2021.3",
     "unityRelease": "0f1",
     "keywords": [

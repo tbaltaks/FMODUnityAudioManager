@@ -163,9 +163,15 @@ namespace TBaltaks.FMODManagement
         }
 
 
-        public void PauseUnpauseEvent(int eventInstanceID, bool setPaused)
+        public void PauseEvent(int eventInstanceID)
         {
-            eventInstances[eventInstanceID].setPaused(setPaused);
+            eventInstances[eventInstanceID].setPaused(true);
+        }
+
+
+        public void UnpauseEvent(int eventInstanceID)
+        {
+            eventInstances[eventInstanceID].setPaused(false);
         }
 
 
