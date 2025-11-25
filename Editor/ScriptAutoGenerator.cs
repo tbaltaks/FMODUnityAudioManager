@@ -269,18 +269,19 @@ namespace TBaltaks.FMODManagement.Editor
                 // --- Global Parameter Labels ---
                 stringBuilder.AppendLine("        public static string ToLabel(this GlobalAudioParameter value) => value switch");
                 stringBuilder.AppendLine("        {");
-                AppendEnumSwitchLines(stringBuilder, globalParameters);
-                stringBuilder.AppendLine("        _ => value.ToString()");
-                stringBuilder.AppendLine("        }");
+                AppendEnumSwitchLines(stringBuilder, globalParameters, "GlobalAudioParameter");
+                stringBuilder.AppendLine("            _ => value.ToString()");
+                stringBuilder.AppendLine("        };");
 
                 stringBuilder.AppendLine();
 
                 // --- Local Parameter Labels ---
                 stringBuilder.AppendLine("        public static string ToLabel(this LocalAudioParameter value) => value switch");
                 stringBuilder.AppendLine("        {");
-                AppendEnumSwitchLines(stringBuilder, localParameters);
-                stringBuilder.AppendLine("        _ => value.ToString()");
-                stringBuilder.AppendLine("        }");
+                AppendEnumSwitchLines(stringBuilder, localParameters, "LocalAudioParameter");
+                stringBuilder.AppendLine("            _ => value.ToString()");
+                stringBuilder.AppendLine("        };");
+
                 stringBuilder.AppendLine("    }");
 
                 stringBuilder.AppendLine("}");
@@ -303,12 +304,12 @@ namespace TBaltaks.FMODManagement.Editor
                 }
 
 
-                void AppendEnumSwitchLines(StringBuilder stringBuilder, List<string> names)
+                void AppendEnumSwitchLines(StringBuilder stringBuilder, List<string> names, string enumType)
                 {
                     if (names == null || names.Count < 1) return;
                     foreach (string name in names)
                     {
-                        stringBuilder.AppendLine($"        GlobalAudioParameter.{FormattedEnumValue(name)} => \"{name}\",");
+                        stringBuilder.AppendLine($"            {enumType}.{FormattedEnumValue(name)} => \"{name}\",");
                     }
                 }
 
