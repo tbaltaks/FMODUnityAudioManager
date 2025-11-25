@@ -99,7 +99,7 @@ namespace TBaltaks.FMODManagement
             Dictionary<LocalAudioParameter, PARAMETER_ID> idLookup = new();
             foreach (LocalAudioParameter parameter in Enum.GetValues(typeof(LocalAudioParameter)))
             {
-                FMOD.RESULT result = eventDescription.getParameterDescriptionByName(parameter.ToString(), out PARAMETER_DESCRIPTION parameterDescription);
+                FMOD.RESULT result = eventDescription.getParameterDescriptionByName(parameter.ToLabel(), out PARAMETER_DESCRIPTION parameterDescription);
 
                 if (result == FMOD.RESULT.OK)
                 {
@@ -115,7 +115,7 @@ namespace TBaltaks.FMODManagement
         {
             foreach (GlobalAudioParameter parameter in Enum.GetValues(typeof(GlobalAudioParameter)))
             {
-                RuntimeManager.StudioSystem.getParameterDescriptionByName(parameter.ToString(), out PARAMETER_DESCRIPTION parameterDescription);
+                RuntimeManager.StudioSystem.getParameterDescriptionByName(parameter.ToLabel(), out PARAMETER_DESCRIPTION parameterDescription);
                 globalParameterIDs.Add(parameter, parameterDescription.id);
             }
         }

@@ -260,27 +260,60 @@ namespace TBaltaks.FMODManagement.Editor
                 AppendEnumValues(stringBuilder, localParameters);
                 stringBuilder.AppendLine("    }");
 
+                stringBuilder.AppendLine();
+                
+                // ...LABEL GETTER CLASS...
+                stringBuilder.AppendLine("    public static class ParametersLabelGetter");
+                stringBuilder.AppendLine("    {");
+
+                // --- Global Parameter Labels ---
+                stringBuilder.AppendLine("        public static string ToLabel(this GlobalAudioParameter value) => value switch");
+                stringBuilder.AppendLine("        {");
+                AppendEnumSwitchLines(stringBuilder, globalParameters);
+                stringBuilder.AppendLine("        _ => value.ToString()");
+                stringBuilder.AppendLine("        }");
+
+                stringBuilder.AppendLine();
+
+                // --- Local Parameter Labels ---
+                stringBuilder.AppendLine("        public static string ToLabel(this LocalAudioParameter value) => value switch");
+                stringBuilder.AppendLine("        {");
+                AppendEnumSwitchLines(stringBuilder, localParameters);
+                stringBuilder.AppendLine("        _ => value.ToString()");
+                stringBuilder.AppendLine("        }");
+                stringBuilder.AppendLine("    }");
+
                 stringBuilder.AppendLine("}");
 
                 return stringBuilder.ToString();
 
 
-                void AppendEnumValues(StringBuilder stringBuilder, List<string> values)
+                void AppendEnumValues(StringBuilder stringBuilder, List<string> names)
                 {
-                    if (values == null || values.Count < 1)
+                    if (names == null || names.Count < 1)
                     {
                         stringBuilder.AppendLine("        // No parameters listed");
                         return;
                     }
 
-                    foreach (string value in values)
+                    foreach (string name in names)
                     {
-                        stringBuilder.AppendLine($"        {value},");
+                        stringBuilder.AppendLine($"        {FormattedEnumValue(name)},");
                     }
                 }
 
 
-                string FormattedEnumValue(string value) // UNUSED - DO NOT SANITISE
+                void AppendEnumSwitchLines(StringBuilder stringBuilder, List<string> names)
+                {
+                    if (names == null || names.Count < 1) return;
+                    foreach (string name in names)
+                    {
+                        stringBuilder.AppendLine($"        GlobalAudioParameter.{FormattedEnumValue(name)} => \"{name}\",");
+                    }
+                }
+
+
+                string FormattedEnumValue(string value)
                 {
                     if (char.IsDigit(value[0])) value = "_" + value;
 
