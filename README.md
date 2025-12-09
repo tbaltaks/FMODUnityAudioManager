@@ -23,7 +23,7 @@ These elements all exist within the `TBaltaks.FMODManagement` namespace, so make
 `FMODEvents` and `FMODParameters` are generated scripts to allow for automatic named code values. This means that these scripts are generated upon importing this package and regenerated whenever a change in the FMOD build is detected. 
 In this way, they can be fragile - do not touch these scripts whatsoever. If there are compile errors in your Unity project upon importing this package, these scripts will not generate.
 In this case, or in any event where the code generation fails, there is a manual generation button in the top bar at **Tools → FMOD Management → Regenerate FMOD Resources**. 
-If this does not work, try removing all compile errors and then restarting the project.
+If this does not work, try removing all compile errors and then reloading the project.
 
 This package builds under the **TomBaltaks.FMODUnityAudioManager** assembly definition, so make sure to add a reference to it via the `fmodunity-audio-manager.asmdef` asset for any custom assembly definitions your scripts use.
 
