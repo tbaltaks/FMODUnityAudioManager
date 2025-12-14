@@ -32,7 +32,7 @@ namespace TBaltaks.FMODManagement.Editor
             string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}");
             if (guids != null && guids.Length > 0)
             {
-                if (debugLogging) Debug.Log($"[FMOD Manager] Found existing asset(s) of type {typeof(T).Name}; skipping creation of {assetName}.");
+                if (debugLogging) Debug.Log($"[FMOD Management] Found existing asset(s) of type {typeof(T).Name}; skipping creation of {assetName}.");
                 return;
             }
 
@@ -41,7 +41,7 @@ namespace TBaltaks.FMODManagement.Editor
             T asset = ScriptableObject.CreateInstance<T>();
             AssetDatabase.CreateAsset(asset, destinationPath);
             AssetDatabase.SaveAssets();
-            if (debugLogging) Debug.Log($"[FMOD Manager] Created {assetName}");
+            if (debugLogging) Debug.Log($"[FMOD Management] Created {assetName}");
         }
 
 

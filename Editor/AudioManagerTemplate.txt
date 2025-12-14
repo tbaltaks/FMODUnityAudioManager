@@ -209,7 +209,7 @@ namespace TBaltaks.FMODManagement
             }
             else
             {
-                Debug.LogWarning($"Tried to set {parameter} parameter on an event that does not contain it.");
+                Debug.LogWarning($"[FMOD Management] Tried to set {parameter} parameter on an event that does not contain it.");
             }
         }
 
@@ -225,7 +225,7 @@ namespace TBaltaks.FMODManagement
             }
             else
             {
-                Debug.LogWarning($"Tried to get value for {parameter} parameter on an event that does not contain it.");
+                Debug.LogWarning($"[FMOD Management] Tried to get value for {parameter} parameter on an event that does not contain it.");
             }
 
             return value;

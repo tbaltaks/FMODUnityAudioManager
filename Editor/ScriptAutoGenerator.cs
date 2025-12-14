@@ -33,7 +33,7 @@ namespace TBaltaks.FMODManagement.Editor
             pathToThis = FindPathToThis();
             if (pathToThis == null)
             {
-                Debug.LogWarning("[FMOD Manager] Could not find package path — skipping script generation.");
+                Debug.LogWarning("[FMOD Management] Could not find package path — skipping script generation.");
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace TBaltaks.FMODManagement.Editor
             }
 
             AssetDatabase.Refresh();
-            if (debugLogging) Debug.Log($"[FMOD Manager] ScriptAutoGenerator finished generating");
+            if (debugLogging) Debug.Log($"[FMOD Management] ScriptAutoGenerator finished generating");
         }
 
 
@@ -86,7 +86,7 @@ namespace TBaltaks.FMODManagement.Editor
             {
                 string parameterName = parameterDescription.name;
                 parameterNames.Add(parameterName);
-                if (debugLogging) Debug.Log($"[FMOD Manager] Found global parameter {parameterName} during script generation");
+                if (debugLogging) Debug.Log($"[FMOD Management] Found global parameter {parameterName} during script generation");
             }
 
             return parameterNames.ToList();
@@ -103,9 +103,16 @@ namespace TBaltaks.FMODManagement.Editor
                 for (int i = 0; i < parameterCount; i++)
                 {
                     if (eventDescription.getParameterDescriptionByIndex(i, out PARAMETER_DESCRIPTION parameterDescription) != FMOD.RESULT.OK) return null;
-                    string parameterName = parameterDescription.name;
-                    if (!parameterNames.Contains(parameterName)) parameterNames.Add(parameterName);
-                    if (debugLogging) Debug.Log($"[FMOD Manager] Found local parameter {parameterName} during script generation");
+                    if ((parameterDescription.flags & FMOD.Studio.PARAMETER_FLAGS.GLOBAL) == FMOD.Studio.PARAMETER_FLAGS.GLOBAL)
+                    {
+                        if (debugLogging) Debug.Log($"[FMOD Management] Skipping global parameter {parameterDescription.name} when collecting local parameters");
+                    }
+                    else
+                    {
+                        string parameterName = parameterDescription.name;
+                        if (!parameterNames.Contains(parameterName)) parameterNames.Add(parameterName);
+                        if (debugLogging) Debug.Log($"[FMOD Management] Found local parameter {parameterName} during script generation");
+                    }
                 }
             }
 
@@ -123,13 +130,13 @@ namespace TBaltaks.FMODManagement.Editor
                 string existingContents = File.ReadAllText(destinationPath);
                 if (existingContents == fileContents)
                 {
-                    if (debugLogging) Debug.Log($"No changes detected in FMODEvents.cs; skipping rewrite.");
+                    if (debugLogging) Debug.Log($"[FMOD Management] No changes detected in FMODEvents.cs; skipping rewrite.");
                     return;
                 }
             }
 
             File.WriteAllText(destinationPath, fileContents);
-            if (debugLogging) Debug.Log($"[FMOD Manager] Created FMODEvents.cs");
+            if (debugLogging) Debug.Log($"[FMOD Management] Created FMODEvents.cs");
 
 
             static string ConstructFileContents(List<EventDescription> eventDescriptions)
@@ -164,7 +171,7 @@ namespace TBaltaks.FMODManagement.Editor
                     {
                         description.getPath(out string path);
                         string label = FormattedEventLabel(path);
-                        if (debugLogging) Debug.Log("Found and added event: " + label);
+                        if (debugLogging) Debug.Log("[FMOD Management] Found and added event: " + label);
 
                         stringBuilder.AppendLine($"        public static string {label} = \"{path}\";");
                     }
@@ -227,13 +234,13 @@ namespace TBaltaks.FMODManagement.Editor
                 string existingContents = File.ReadAllText(destinationPath);
                 if (existingContents == fileContents)
                 {
-                    if (debugLogging) Debug.Log($"No changes detected in FMODParameters.cs; skipping rewrite.");
+                    if (debugLogging) Debug.Log($"[FMOD Management] No changes detected in FMODParameters.cs; skipping rewrite.");
                     return;
                 }
             }
 
             File.WriteAllText(destinationPath, fileContents);
-            if (debugLogging) Debug.Log($"[FMOD Manager] Created FMODParameters.cs");
+            if (debugLogging) Debug.Log($"[FMOD Management] Created FMODParameters.cs");
 
 
             static string ConstructFileContents(List<string> globalParameters, List<string> localParameters)
@@ -343,18 +350,18 @@ namespace TBaltaks.FMODManagement.Editor
 
             if (!File.Exists(sourcePath))
             {
-                Debug.LogWarning($"[FMOD Manager] Missing template: {sourcePath}");
+                Debug.LogWarning($"[FMOD Management] Missing template: {sourcePath}");
                 return;
             }
 
             if (File.Exists(destinationPath))
             {
-                if (debugLogging) Debug.Log($"[FMOD Manager] {newFileName} already exsists");
+                if (debugLogging) Debug.Log($"[FMOD Management] {newFileName} already exsists");
                 return;
             }
 
             File.Copy(sourcePath, destinationPath);
-            if (debugLogging) Debug.Log($"[FMOD Manager] Created {newFileName}");
+            if (debugLogging) Debug.Log($"[FMOD Management] Created {newFileName}");
         }
 
 
