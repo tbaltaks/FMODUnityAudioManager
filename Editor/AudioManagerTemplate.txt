@@ -138,26 +138,27 @@ namespace TBaltaks.FMODManagement
             return eventInstance.GetHashCode();
         }
 
-        public int StartNewEvent(string eventPath, Transform emitterTransform)
+
+        public int StartNewEventAttached(string eventPath, GameObject emitter)
         {
             EventInstance eventInstance = CreateEventInstance(eventPath);
-            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitterTransform);
+            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter);
             eventInstance.start();
             return eventInstance.GetHashCode();
         }
 
-        public int StartNewEvent(string eventPath, Transform emitterTransform, Rigidbody emitterRigidbody)
+        public int StartNewEventAttached(string eventPath, GameObject emitter, Rigidbody emitterRigidbody)
         {
             EventInstance eventInstance = CreateEventInstance(eventPath);
-            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitterTransform, emitterRigidbody);
+            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter, emitterRigidbody);
             eventInstance.start();
             return eventInstance.GetHashCode();
         }
 
-        public int StartNewEvent(string eventPath, Transform emitterTransform, Rigidbody2D emitterRigidbody)
+        public int StartNewEventAttached(string eventPath, GameObject emitter, Rigidbody2D emitterRigidbody)
         {
             EventInstance eventInstance = CreateEventInstance(eventPath);
-            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitterTransform, emitterRigidbody);
+            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter, emitterRigidbody);
             eventInstance.start();
             return eventInstance.GetHashCode();
         }
