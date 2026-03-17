@@ -18,12 +18,16 @@ There are just *three* elements that make up the entire system:
 - `FMODEvents`: Contains every event in your FMOD build as a separate variable whose name matches the name of the event.
 - `FMODParameters`: Contains two enums, `LocalAudioParameter` and `GlobalAudioParameter`, each filled with values based on your FMOD build and whose names match the names of the given parameter.
 
+### Notes (Troubleshooting)
 These elements all exist within the `TBaltaks.FMODManagement` namespace, so make sure to add the directive `using TBaltaks.FMODManagement` for convenience. Each of the elements is also `public`, `static`, and NOT a `MonoBehaviour`, so they do not need to exist on a game object in a scene at all to function - any script from anywhere in the Unity project can access them... simply call an `AudioManager` method, passing in any arguments it may require, and away you go!
 
 `FMODEvents` and `FMODParameters` are generated scripts to allow for automatic named code values. This means that these scripts are generated upon importing this package and regenerated whenever a change in the FMOD build is detected. 
 In this way, they can be fragile - do not touch these scripts whatsoever. If there are compile errors in your Unity project upon importing this package, these scripts will not generate.
-In this case, or in any event where the code generation fails, there is a manual generation button in the top bar at **Tools → FMOD Management → Regenerate FMOD Resources**. 
-If this does not work, try removing all compile errors and then reloading the project.
+In this case, or in any event where the code generation fails, there is a manual generation button up in the menu bar at:
+
+ **Tools → FMOD Management → Regenerate FMOD Resources**.
+
+If this does not work, try removing all compile errors and then reloading the project. The `AudioManager` script is also generated, but only if it is not detected - the package does not check for updates to this file in order to leave it free for extention or alteration. If for some reason you require the `AudioManager` script to be regenerated, simply delete it and the package will auto-generate a new one.
 
 This package builds under the **TomBaltaks.FMODUnityAudioManager** assembly definition, so make sure to add a reference to it via the `fmodunity-audio-manager.asmdef` asset for any custom assembly definitions your scripts use.
 
