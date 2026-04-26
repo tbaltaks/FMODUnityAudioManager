@@ -222,7 +222,7 @@ namespace TBaltaks.FMODManagement
             eventInstances[eventInstanceID].getDescription(out EventDescription eventDescription);
             if (localParameterIDs[eventDescription].TryGetValue(parameter, out PARAMETER_ID parameterID))
             {
-                eventInstances[eventInstanceID].getParameterByID(parameterID, out value);
+                eventInstances[eventInstanceID].getParameterByID(parameterID, out _, out value);
             }
             else
             {
@@ -241,7 +241,7 @@ namespace TBaltaks.FMODManagement
 
         public float GetGlobalParameter(GlobalAudioParameter parameter)
         {
-            RuntimeManager.StudioSystem.getParameterByID(globalParameterIDs[parameter], out float value);
+            RuntimeManager.StudioSystem.getParameterByID(globalParameterIDs[parameter], out _, out float value);
             return value;
         }
     }
