@@ -137,6 +137,12 @@ namespace TBaltaks.FMODManagement
             eventInstance.start();
             return eventInstance.GetHashCode();
         }
+        public int StartNewEvent(EventReference eventReference)
+        {
+            EventInstance eventInstance = CreateEventInstance(eventReference.Path);
+            eventInstance.start();
+            return eventInstance.GetHashCode();
+        }
 
 
         public int StartNewEventAttached(string eventPath, GameObject emitter)
@@ -146,7 +152,6 @@ namespace TBaltaks.FMODManagement
             eventInstance.start();
             return eventInstance.GetHashCode();
         }
-
         public int StartNewEventAttached(string eventPath, GameObject emitter, Rigidbody emitterRigidbody)
         {
             EventInstance eventInstance = CreateEventInstance(eventPath);
@@ -154,10 +159,30 @@ namespace TBaltaks.FMODManagement
             eventInstance.start();
             return eventInstance.GetHashCode();
         }
-
         public int StartNewEventAttached(string eventPath, GameObject emitter, Rigidbody2D emitterRigidbody)
         {
             EventInstance eventInstance = CreateEventInstance(eventPath);
+            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter, emitterRigidbody);
+            eventInstance.start();
+            return eventInstance.GetHashCode();
+        }
+        public int StartNewEventAttached(EventReference eventReference, GameObject emitter)
+        {
+            EventInstance eventInstance = CreateEventInstance(eventReference.Path);
+            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter);
+            eventInstance.start();
+            return eventInstance.GetHashCode();
+        }
+        public int StartNewEventAttached(EventReference eventReference, GameObject emitter, Rigidbody emitterRigidbody)
+        {
+            EventInstance eventInstance = CreateEventInstance(eventReference.Path);
+            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter, emitterRigidbody);
+            eventInstance.start();
+            return eventInstance.GetHashCode();
+        }
+        public int StartNewEventAttached(EventReference eventReference, GameObject emitter, Rigidbody2D emitterRigidbody)
+        {
+            EventInstance eventInstance = CreateEventInstance(eventReference.Path);
             RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter, emitterRigidbody);
             eventInstance.start();
             return eventInstance.GetHashCode();
@@ -189,15 +214,27 @@ namespace TBaltaks.FMODManagement
         {
             RuntimeManager.PlayOneShot(eventPath);
         }
-
         public void PlayOneShot(string eventPath, Vector3 position)
         {
             RuntimeManager.PlayOneShot(eventPath, position);
         }
-
-        public void PlayOneShot(string eventPath, GameObject emitter)
+        public void PlayOneShot(EventReference eventReference)
         {
-            RuntimeManager.PlayOneShotAttached(eventPath, emitter);
+            RuntimeManager.PlayOneShot(eventReference);
+        }
+        public void PlayOneShot(EventReference eventReference, Vector3 position)
+        {
+            RuntimeManager.PlayOneShot(eventReference, position);
+        }
+
+
+        public void PlayOneShotAttached(EventReference eventReference, GameObject emitter)
+        {
+            RuntimeManager.PlayOneShotAttached(eventReference, emitter);
+        }
+        public void PlayOneShotAttached(EventReference eventReference, GameObject emitter)
+        {
+            RuntimeManager.PlayOneShotAttached(eventReference, emitter);
         }
 
 
