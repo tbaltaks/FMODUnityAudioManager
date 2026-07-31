@@ -228,9 +228,9 @@ namespace TBaltaks.FMODManagement
         }
 
 
-        public void PlayOneShotAttached(EventReference eventReference, GameObject emitter)
+        public void PlayOneShotAttached(string eventPath, GameObject emitter)
         {
-            RuntimeManager.PlayOneShotAttached(eventReference, emitter);
+            RuntimeManager.PlayOneShotAttached(eventPath, emitter);
         }
         public void PlayOneShotAttached(EventReference eventReference, GameObject emitter)
         {
