@@ -76,7 +76,7 @@ namespace TBaltaks.FMODManagement
 #endif
 
 
-        private void CleanUp(bool doesCleanUpAllowFadeOut = true)
+        public void CleanUp(bool doesCleanUpAllowFadeOut = true)
         {
             var keys = new List<int>(eventInstances.Keys);
             foreach (int key in keys)
