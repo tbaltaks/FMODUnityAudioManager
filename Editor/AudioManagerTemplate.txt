@@ -238,12 +238,12 @@ namespace TBaltaks.FMODManagement
         }
 
 
-        public void SetLocalParameter(int eventInstanceID, LocalAudioParameter parameter, float value)
+        public void SetLocalParameter(int eventInstanceID, LocalAudioParameter parameter, float value, bool ignoreSeekSpeed = false)
         {
             eventInstances[eventInstanceID].getDescription(out EventDescription eventDescription);
             if (localParameterIDs[eventDescription].TryGetValue(parameter, out PARAMETER_ID parameterID))
             {
-                eventInstances[eventInstanceID].setParameterByID(parameterID, value);
+                eventInstances[eventInstanceID].setParameterByID(parameterID, value, ignoreSeekSpeed);
             }
             else
             {
@@ -270,9 +270,9 @@ namespace TBaltaks.FMODManagement
         }
 
 
-        public void SetGlobalParameter(GlobalAudioParameter parameter, float value)
+        public void SetGlobalParameter(GlobalAudioParameter parameter, float value, bool ignoreSeekSpeed = false)
         {
-            RuntimeManager.StudioSystem.setParameterByID(globalParameterIDs[parameter], value);
+            RuntimeManager.StudioSystem.setParameterByID(globalParameterIDs[parameter], value, ignoreSeekSpeed);
         }
 
 
