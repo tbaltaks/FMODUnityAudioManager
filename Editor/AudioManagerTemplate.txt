@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using FMODUnity;
 using FMOD.Studio;
+using STOP_MODE = FMOD.Studio.STOP_MODE;
 
 namespace TBaltaks.FMODManagement
 {
@@ -82,9 +83,9 @@ namespace TBaltaks.FMODManagement
             foreach (int key in keys)
             {
                 EventInstance eventInstance = eventInstances[key];
-                FMOD.Studio.STOP_MODE stopMode = doesCleanUpAllowFadeOut
-                    ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT
-                    : FMOD.Studio.STOP_MODE.IMMEDIATE;
+                STOP_MODE stopMode = doesCleanUpAllowFadeOut
+                    ? STOP_MODE.ALLOWFADEOUT
+                    : STOP_MODE.IMMEDIATE;
                 eventInstance.stop(stopMode);
                 eventInstance.release();
                 eventInstances.Remove(key);
@@ -203,7 +204,7 @@ namespace TBaltaks.FMODManagement
 
         public void StopEvent(int eventInstanceID, bool allowFadeOut = true)
         {
-            FMOD.Studio.STOP_MODE stopMode = allowFadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE;
+            STOP_MODE stopMode = allowFadeOut ? STOP_MODE.ALLOWFADEOUT : STOP_MODE.IMMEDIATE;
             EventInstance eventInstance = eventInstances[eventInstanceID];
             eventInstance.stop(stopMode);
             eventInstance.release();
