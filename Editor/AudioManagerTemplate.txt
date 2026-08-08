@@ -7,8 +7,17 @@ using STOP_MODE = FMOD.Studio.STOP_MODE;
 
 namespace TBaltaks.FMODManagement
 {
-    public class AudioManager : IDisposable
+    public sealed class AudioManager : IDisposable
     {
+        private sealed class ManagedEvent
+        {
+            public int id;
+            public EventInstance instance;
+            public FMOD.GUID guid;
+            public EventDescription description;
+            public Dictionary<LocalAudioParameter, PARAMETER_ID> localParameterIds = new();
+        }
+
         private static AudioManager _instance;
         private static readonly object _lock = new();
 
@@ -17,22 +26,24 @@ namespace TBaltaks.FMODManagement
             get
             {
                 if (_instance != null) return _instance;
+
                 lock (_lock)
                 {
-                    if (_instance == null)
-                    {
-                        _instance = new AudioManager();
-                    }
+                    _instance ??= new AudioManager();
                     return _instance;
                 }
             }
         }
 
-        private Dictionary<int, EventInstance> eventInstances = new();
-        private Dictionary<EventDescription, Dictionary<LocalAudioParameter, PARAMETER_ID>> localParameterIDs = new();
-        private Dictionary<GlobalAudioParameter, PARAMETER_ID> globalParameterIDs = new();
+        private readonly Dictionary<int, ManagedEvent> _events = new();
+        private readonly Dictionary<FMOD.GUID, Dictionary<LocalAudioParameter, PARAMETER_ID>> _localParameterIds = new();
+        private readonly Dictionary<GlobalAudioParameter, PARAMETER_ID> _globalParameterIds = new();
 
-        private bool _isDisposed = false;
+        private int _nextEventId = 1;
+        private bool _isDisposed;
+        private bool _globalParameterCacheComplete;
+
+        private const string LogPrefix = "[FMOD Management]";
 
 
         private AudioManager()
@@ -41,7 +52,6 @@ namespace TBaltaks.FMODManagement
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 #endif
-            CacheGlobalParameterIDs();
         }
 
 
@@ -49,6 +59,8 @@ namespace TBaltaks.FMODManagement
         {
             if (_isDisposed) return;
             _isDisposed = true;
+
+            CleanUp(false);
 
             Application.quitting -= OnApplicationQuit;
 #if UNITY_EDITOR
@@ -79,135 +91,223 @@ namespace TBaltaks.FMODManagement
 
         public void CleanUp(bool doesCleanUpAllowFadeOut = true)
         {
-            var keys = new List<int>(eventInstances.Keys);
+            if (_events.Count == 0) return;
+
+            var keys = new List<int>(_events.Keys);
             foreach (int key in keys)
             {
-                EventInstance eventInstance = eventInstances[key];
-                STOP_MODE stopMode = doesCleanUpAllowFadeOut
-                    ? STOP_MODE.ALLOWFADEOUT
-                    : STOP_MODE.IMMEDIATE;
-                eventInstance.stop(stopMode);
-                eventInstance.release();
-                eventInstances.Remove(key);
+                ReleaseEventInternal(key, doesCleanUpAllowFadeOut);
             }
         }
 
 
-        private void CacheLocalParameterIDs(EventDescription eventDescription)
+        private bool EnsureGlobalParameterCache()
         {
-            if (localParameterIDs.ContainsKey(eventDescription)) return;
+            if (_globalParameterCacheComplete) return true;
 
-            Dictionary<LocalAudioParameter, PARAMETER_ID> idLookup = new();
-            foreach (LocalAudioParameter parameter in Enum.GetValues(typeof(LocalAudioParameter)))
+            bool allFound = false;
+            Array values = Enum.GetValues(typeof(GlobalAudioParameter));
+
+            foreach (GlobalAudioParameter parameter in values)
             {
-                FMOD.RESULT result = eventDescription.getParameterDescriptionByName(parameter.ToLabel(), out PARAMETER_DESCRIPTION parameterDescription);
+                if (_globalParameterIds.ContainsKey(parameter)) continue;
+
+                FMOD.RESULT result = RuntimeManager.StudioSystem.getParameterDescriptionByName(
+                    parameter.ToLabel(),
+                    out PARAMETER_DESCRIPTION parameterDescription
+                );
 
                 if (result == FMOD.RESULT.OK)
                 {
-                    idLookup.Add(parameter, parameterDescription.id);
+                    _globalParameterIds[parameter] = parameterDescription.id;
+                    allFound = true;
                 }
             }
 
-            localParameterIDs.Add(eventDescription, idLookup);
+            _globalParameterCacheComplete = allFound && _globalParameterIds.Count == values.Length;
+            return _globalParameterCacheComplete;
         }
 
 
-        private void CacheGlobalParameterIDs()
+        private void CacheLocalParameterIDs(FMOD.GUID eventGuid, EventDescription eventDescription)
         {
-            foreach (GlobalAudioParameter parameter in Enum.GetValues(typeof(GlobalAudioParameter)))
+            if (_localParameterIds.ContainsKey(eventGuid)) return;
+
+            Dictionary<LocalAudioParameter, PARAMETER_ID> idLookup = new();
+            Array values = Enum.GetValues(typeof(LocalAudioParameter));
+
+            foreach (LocalAudioParameter parameter in values)
             {
-                RuntimeManager.StudioSystem.getParameterDescriptionByName(parameter.ToLabel(), out PARAMETER_DESCRIPTION parameterDescription);
-                globalParameterIDs.Add(parameter, parameterDescription.id);
+                FMOD.RESULT result = eventDescription.getParameterDescriptionByName(
+                    parameter.ToLabel(),
+                    out PARAMETER_DESCRIPTION parameterDescription
+                );
+
+                if (result == FMOD.RESULT.OK)
+                {
+                    idLookup[parameter] = parameterDescription.id;
+                }
             }
+
+            _localParameterIds[eventGuid] = idLookup;
         }
 
 
-        private EventInstance CreateEventInstance(string eventPath)
+        private bool TryCreateManagedEvent(string eventPath, out int eventInstanceID, out ManagedEvent managedEvent)
         {
+            eventInstanceID = -1;
+            managedEvent = null;
+
             EventInstance eventInstance = RuntimeManager.CreateInstance(eventPath);
-            eventInstances.Add(eventInstance.GetHashCode(), eventInstance);
-            eventInstance.getDescription(out EventDescription eventDescription);
-            CacheLocalParameterIDs(eventDescription);
-            return eventInstance;
+            if (!eventInstance.isValid())
+            {
+                Debug.LogWarning($"{LogPrefix} Failed to create FMOD event instance for path '{eventPath}'.");
+                return false;
+            }
+
+            FMOD.RESULT descriptionResult = eventInstance.getDescription(out EventDescription eventDescription);
+            if (descriptionResult != FMOD.RESULT.OK)
+            {
+                Debug.LogWarning($"{LogPrefix} Created event instance for '{eventPath}', but could not retrieve its description ({descriptionResult}).");
+                eventInstance.release();
+                return false;
+            }
+
+            FMOD.RESULT idResult = eventDescription.getID(out FMOD.GUID eventGuid);
+            if (idResult != FMOD.RESULT.OK)
+            {
+                Debug.LogWarning($"{LogPrefix} Created event instance for '{eventPath}', but could not retrieve its GUID ({idResult}).");
+                eventInstance.release();
+                return false;
+            }
+
+            CacheLocalParameterIDs(eventGuid, eventDescription);
+
+            eventInstanceID = _nextEventId++;
+            managedEvent = new ManagedEvent
+            {
+                id = eventInstanceID,
+                instance = eventInstance,
+                guid = eventGuid,
+                description = eventDescription
+            };
+
+            _events[eventInstanceID] = managedEvent;
+            return true;
         }
 
+
+        private bool TryGetManagedEvent(int eventInstanceID, out ManagedEvent managedEvent)
+        {
+            managedEvent = null;
+
+            if (!_events.TryGetValue(eventInstanceID, out managedEvent))
+            {
+                Debug.LogWarning($"{LogPrefix} Tried to access missing event instance ID {eventInstanceID}.");
+                return false;
+            }
+
+            if (managedEvent == null || !managedEvent.instance.isValid())
+            {
+                _events.Remove(eventInstanceID);
+                Debug.LogWarning($"{LogPrefix} Event instance ID {eventInstanceID} is no longer valid.");
+                managedEvent = null;
+                return false;
+            }
+
+            return true;
+        }
+
+
+        private void ReleaseEventInternal(int eventInstanceID, bool allowFadeOut)
+        {
+            if (!_events.TryGetValue(eventInstanceID, out ManagedEvent managedEvent))
+                return;
+
+            STOP_MODE stopMode = allowFadeOut ? STOP_MODE.ALLOWFADEOUT : STOP_MODE.IMMEDIATE;
+
+            if (managedEvent.instance.isValid())
+            {
+                managedEvent.instance.stop(stopMode);
+                managedEvent.instance.release();
+            }
+
+            _events.Remove(eventInstanceID);
+        }
+        
 
         public int StartNewEvent(string eventPath)
         {
-            EventInstance eventInstance = CreateEventInstance(eventPath);
-            eventInstance.start();
-            return eventInstance.GetHashCode();
+            if (!TryCreateManagedEvent(eventPath, out int eventInstanceID, out ManagedEvent managedEvent))
+                return -1;
+
+            managedEvent.instance.start();
+            return eventInstanceID;
         }
         public int StartNewEvent(EventReference eventReference)
         {
-            EventInstance eventInstance = CreateEventInstance(eventReference.Path);
-            eventInstance.start();
-            return eventInstance.GetHashCode();
+            return StartNewEvent(eventReference.Path);
         }
 
 
         public int StartNewEventAttached(string eventPath, GameObject emitter)
         {
-            EventInstance eventInstance = CreateEventInstance(eventPath);
-            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter);
-            eventInstance.start();
-            return eventInstance.GetHashCode();
+            if (!TryCreateManagedEvent(eventPath, out int eventInstanceID, out ManagedEvent managedEvent))
+                return -1;
+
+            RuntimeManager.AttachInstanceToGameObject(managedEvent.instance, emitter);
+            managedEvent.instance.start();
+            return eventInstanceID;
         }
         public int StartNewEventAttached(string eventPath, GameObject emitter, Rigidbody emitterRigidbody)
         {
-            EventInstance eventInstance = CreateEventInstance(eventPath);
-            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter, emitterRigidbody);
-            eventInstance.start();
-            return eventInstance.GetHashCode();
+            if (!TryCreateManagedEvent(eventPath, out int eventInstanceID, out ManagedEvent managedEvent))
+                return -1;
+
+            RuntimeManager.AttachInstanceToGameObject(managedEvent.instance, emitter, emitterRigidbody);
+            managedEvent.instance.start();
+            return eventInstanceID;
         }
         public int StartNewEventAttached(string eventPath, GameObject emitter, Rigidbody2D emitterRigidbody)
         {
-            EventInstance eventInstance = CreateEventInstance(eventPath);
-            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter, emitterRigidbody);
-            eventInstance.start();
-            return eventInstance.GetHashCode();
+            if (!TryCreateManagedEvent(eventPath, out int eventInstanceID, out ManagedEvent managedEvent))
+                return -1;
+
+            RuntimeManager.AttachInstanceToGameObject(managedEvent.instance, emitter, emitterRigidbody);
+            managedEvent.instance.start();
+            return eventInstanceID;
         }
         public int StartNewEventAttached(EventReference eventReference, GameObject emitter)
         {
-            EventInstance eventInstance = CreateEventInstance(eventReference.Path);
-            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter);
-            eventInstance.start();
-            return eventInstance.GetHashCode();
+            return StartNewEventAttached(eventReference.Path, emitter);
         }
         public int StartNewEventAttached(EventReference eventReference, GameObject emitter, Rigidbody emitterRigidbody)
         {
-            EventInstance eventInstance = CreateEventInstance(eventReference.Path);
-            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter, emitterRigidbody);
-            eventInstance.start();
-            return eventInstance.GetHashCode();
+            return StartNewEventAttached(eventReference.Path, emitter, emitterRigidbody);
         }
         public int StartNewEventAttached(EventReference eventReference, GameObject emitter, Rigidbody2D emitterRigidbody)
         {
-            EventInstance eventInstance = CreateEventInstance(eventReference.Path);
-            RuntimeManager.AttachInstanceToGameObject(eventInstance, emitter, emitterRigidbody);
-            eventInstance.start();
-            return eventInstance.GetHashCode();
+            return StartNewEventAttached(eventReference.Path, emitter, emitterRigidbody);
         }
 
 
         public void PauseEvent(int eventInstanceID)
         {
-            eventInstances[eventInstanceID].setPaused(true);
+            if (!TryGetManagedEvent(eventInstanceID, out ManagedEvent managedEvent)) return;
+            managedEvent.instance.setPaused(true);
         }
 
 
         public void UnpauseEvent(int eventInstanceID)
         {
-            eventInstances[eventInstanceID].setPaused(false);
+            if (!TryGetManagedEvent(eventInstanceID, out ManagedEvent managedEvent)) return;
+            managedEvent.instance.setPaused(false);
         }
 
 
         public void StopEvent(int eventInstanceID, bool allowFadeOut = true)
         {
-            STOP_MODE stopMode = allowFadeOut ? STOP_MODE.ALLOWFADEOUT : STOP_MODE.IMMEDIATE;
-            EventInstance eventInstance = eventInstances[eventInstanceID];
-            eventInstance.stop(stopMode);
-            eventInstance.release();
+            ReleaseEventInternal(eventInstanceID, allowFadeOut);
         }
 
 
@@ -241,46 +341,69 @@ namespace TBaltaks.FMODManagement
 
         public void SetLocalParameter(int eventInstanceID, LocalAudioParameter parameter, float value, bool ignoreSeekSpeed = false)
         {
-            eventInstances[eventInstanceID].getDescription(out EventDescription eventDescription);
-            if (localParameterIDs[eventDescription].TryGetValue(parameter, out PARAMETER_ID parameterID))
+            if (!TryGetManagedEvent(eventInstanceID, out ManagedEvent managedEvent)) return;
+
+            if (_localParameterIds.TryGetValue(managedEvent.guid, out Dictionary<LocalAudioParameter, PARAMETER_ID> parameterLookup) &&
+                parameterLookup.TryGetValue(parameter, out PARAMETER_ID parameterID))
             {
-                eventInstances[eventInstanceID].setParameterByID(parameterID, value, ignoreSeekSpeed);
+                managedEvent.instance.setParameterByID(parameterID, value, ignoreSeekSpeed);
+                return;
             }
-            else
-            {
-                Debug.LogWarning($"[FMOD Management] Tried to set {parameter} parameter on an event that does not contain it.");
-            }
+
+            Debug.LogWarning($"{LogPrefix} Tried to set '{parameter}' on event instance {eventInstanceID}, but that event does not contain the parameter.");
         }
 
 
         public float GetLocalParameter(int eventInstanceID, LocalAudioParameter parameter)
         {
-            float value = 0;
+            if (!TryGetManagedEvent(eventInstanceID, out ManagedEvent managedEvent)) return 0f;
 
-            eventInstances[eventInstanceID].getDescription(out EventDescription eventDescription);
-            if (localParameterIDs[eventDescription].TryGetValue(parameter, out PARAMETER_ID parameterID))
+            if (_localParameterIds.TryGetValue(managedEvent.guid, out Dictionary<LocalAudioParameter, PARAMETER_ID> parameterLookup) &&
+                parameterLookup.TryGetValue(parameter, out PARAMETER_ID parameterID))
             {
-                eventInstances[eventInstanceID].getParameterByID(parameterID, out _, out value);
-            }
-            else
-            {
-                Debug.LogWarning($"[FMOD Management] Tried to get value for {parameter} parameter on an event that does not contain it.");
+                managedEvent.instance.getParameterByID(parameterID, out _, out float value);
+                return value;
             }
 
-            return value;
+            Debug.LogWarning($"{LogPrefix} Tried to get '{parameter}' from event instance {eventInstanceID}, but that event does not contain the parameter.");
+            return 0f;
         }
 
 
         public void SetGlobalParameter(GlobalAudioParameter parameter, float value, bool ignoreSeekSpeed = false)
         {
-            RuntimeManager.StudioSystem.setParameterByID(globalParameterIDs[parameter], value, ignoreSeekSpeed);
+            if (!EnsureGlobalParameterCache())
+            {
+                Debug.LogWarning($"{LogPrefix} Global parameter cache is not ready yet.");
+                return;
+            }
+
+            if (_globalParameterIds.TryGetValue(parameter, out PARAMETER_ID parameterID))
+            {
+                RuntimeManager.StudioSystem.setParameterByID(parameterID, value, ignoreSeekSpeed);
+                return;
+            }
+
+            Debug.LogWarning($"{LogPrefix} Tried to set unknown global parameter '{parameter}'.");
         }
 
 
         public float GetGlobalParameter(GlobalAudioParameter parameter)
         {
-            RuntimeManager.StudioSystem.getParameterByID(globalParameterIDs[parameter], out _, out float value);
-            return value;
+            if (!EnsureGlobalParameterCache())
+            {
+                Debug.LogWarning($"{LogPrefix} Global parameter cache is not ready yet.");
+                return 0f;
+            }
+
+            if (_globalParameterIds.TryGetValue(parameter, out PARAMETER_ID parameterID))
+            {
+                RuntimeManager.StudioSystem.getParameterByID(parameterID, out _, out float value);
+                return value;
+            }
+
+            Debug.LogWarning($"{LogPrefix} Tried to get unknown global parameter '{parameter}'.");
+            return 0f;
         }
     }
 }
